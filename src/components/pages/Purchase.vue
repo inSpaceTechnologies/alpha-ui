@@ -76,7 +76,7 @@ export default {
     };
   },
   async mounted() {
-    const eosAccount = this.$store.getters.accountName;
+    const eosAccount = this.$store.getters['scatter/accountName'];
     const axiosInstance = await inspaceAPI.getAxiosInstance();
     let response;
     try {
@@ -90,14 +90,14 @@ export default {
   },
   methods: {
     async getPurchaseAmount() {
-      const purchaseAmountString = await this.$store.dispatch('openStringPrompt', {
+      const purchaseAmountString = await this.$store.dispatch('stringPrompt/openStringPrompt', {
         text: 'Enter amount',
         value: '',
       });
       return parseFloat(purchaseAmountString);
     },
     async bitcoinIscoinPurchase() {
-      const eosAccount = this.$store.getters.accountName;
+      const eosAccount = this.$store.getters['scatter/accountName'];
       const purchaseAmount = await this.getPurchaseAmount();
       if (purchaseAmount <= 0) {
         return;
@@ -113,7 +113,7 @@ export default {
       this.bitcoinTransaction = response.data;
     },
     async eosIscoinPurchase() {
-      const eosAccount = this.$store.getters.accountName;
+      const eosAccount = this.$store.getters['scatter/accountName'];
       const purchaseAmount = await this.getPurchaseAmount();
       if (purchaseAmount <= 0) {
         return;

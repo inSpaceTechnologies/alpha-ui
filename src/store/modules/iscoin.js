@@ -4,16 +4,16 @@ This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at https://mozilla.org/MPL/2.0/.
 */
-const ISCOIN_ACCOUNT_NAME = 'iscoin';
+const ISCOIN_ACCOUNT_NAME = 'iscoinalpha1';
 
-async function getBalance(rpc, accountName) {
-  const accountRows = (await rpc.get_table_rows({
-    json: true,
+async function getBalance(dispatch, accountName) {
+  const accountRows = await dispatch('eos/getTableRows', {
     scope: accountName,
     code: ISCOIN_ACCOUNT_NAME,
     table: 'accounts',
     limit: 500,
-  })).rows;
+  }, { root: true });
+
   let balance = 0;
   accountRows.forEach((accountRow) => {
     const balanceAsset = accountRow.balance.split(' ');
@@ -25,14 +25,14 @@ async function getBalance(rpc, accountName) {
   return balance;
 }
 
-async function getStakes(rpc, accountName) {
-  const stakeRows = (await rpc.get_table_rows({
-    json: true,
+async function getStakes(dispatch, accountName) {
+  const stakeRows = await dispatch('eos/getTableRows', {
     scope: accountName,
     code: ISCOIN_ACCOUNT_NAME,
     table: 'stakes',
     limit: 500,
-  })).rows;
+  }, { root: true });
+
   const stakes = [];
   stakeRows.forEach((stakeRow) => {
     const quantityAsset = stakeRow.quantity.split(' ');
@@ -42,7 +42,7 @@ async function getStakes(rpc, accountName) {
     stakes.push({
       quantity: parseFloat(quantityAsset[0]),
       start: stakeRow.start,
-      duration: stakeRow.duration,
+      durationIndex: stakeRow.duration_index,
     });
   });
   return stakes;
@@ -63,39 +63,34 @@ const storeMutations = {
 };
 
 const storeActions = {
-  async getIscoinData({ commit, rootState, rootGetters }) {
-    const { accountName } = rootGetters;
-    commit('setBalance', await getBalance(rootState.scatter.rpc, accountName));
-    commit('setStakes', await getStakes(rootState.scatter.rpc, accountName));
+  async getIscoinData({
+    commit, dispatch, rootGetters,
+  }) {
+    const accountName = rootGetters['eos/accountName'];
+    commit('setBalance', await getBalance(dispatch, accountName));
+    commit('setStakes', await getStakes(dispatch, accountName));
   },
-  async addStake({ rootState, rootGetters }, { quantity, duration }) {
+  async addStake({ dispatch, rootGetters }, { quantity, durationIndex }) {
     const quantityFloat = parseFloat(quantity);
     const quantityString = `${quantityFloat.toFixed(process.env.CURRENCY_DECIMAL_PLACES)} ${process.env.CURRENCY_SYMBOL}`;
-    const { accountName } = rootGetters;
-    await rootState.scatter.api.transact({
-      actions: [{
-        account: ISCOIN_ACCOUNT_NAME,
-        name: 'addstake',
-        authorization: [{
-          actor: accountName,
-          permission: 'active',
-        }],
-        data: {
-          staker: accountName,
-          quantity: quantityString,
-          duration,
-        },
-      }],
-    }, {
-      blocksBehind: parseInt(process.env.BLOCKS_BEHIND, 10),
-      expireSeconds: parseInt(process.env.EXPIRE_SECONDS, 10),
-    });
+    const accountName = rootGetters['eos/accountName'];
+    await dispatch('eos/transact', {
+      account: ISCOIN_ACCOUNT_NAME,
+      name: 'addstake',
+      auth: accountName,
+      data: {
+        staker: accountName,
+        quantity: quantityString,
+        duration_index: durationIndex,
+      },
+    }, { root: true });
   },
 };
 
 const storeGetters = {};
 
 export default {
+  namespaced: true,
   state: storeState,
   actions: storeActions,
   mutations: storeMutations,

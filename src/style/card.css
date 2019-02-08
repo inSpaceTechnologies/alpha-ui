@@ -11,6 +11,9 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 .card:first-child {
 	margin-top: 1.5rem;
 }
+.card .card:first-child {
+	margin-top: 0;
+}
 .card {
 	margin-bottom: 1.5rem;
 }

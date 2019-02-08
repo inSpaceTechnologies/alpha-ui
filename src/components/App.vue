@@ -6,9 +6,9 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 -->
 <template>
   <div id="wrapper">
-    <navbar id="navbar"/>
+    <navbar id="navbar" />
     <div id="content">
-      <router-view class="z-index-1"/>
+      <router-view class="z-index-1" />
       <div id="noty-parent">
         <div
           id="noty-container"
@@ -16,7 +16,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
         />
       </div>
     </div>
-    <string-prompt/>
+    <string-prompt />
   </div>
 </template>
 <style>

@@ -9,21 +9,21 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
     <div class="card">
       <div class="card-header">
         <span class="card-title">
-          Welcome
+          EOS setup
         </span>
       </div>
       <div class="card-content">
-        <p>Welcome to inSpace!</p>
-        <p>
-          If you have an EOS account, proceed to
-          <router-link
-            :to="{name: 'eos-setup'}"
-            exact
-            class="navbar-button"
-          >
-            EOS setup
-          </router-link>
-        </p>
+        <scatter-setup @identity-set="identitySet()" />
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">
+              Using the inSpace client
+            </span>
+          </div>
+          <div class="card-content">
+            <p>Coming soon...</p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -32,5 +32,12 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 </style>
 <script>
 export default {
+  methods: {
+    identitySet() {
+      if (this.$route.query && this.$route.query.redirect) {
+        this.$router.push({ path: this.$route.query.redirect });
+      }
+    },
+  },
 };
 </script>

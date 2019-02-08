@@ -6,23 +6,20 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 */
 import Vue from 'vue';
 import Vuex from 'vuex';
-import scatter from './modules/scatter';
-import filespace from './modules/filespace';
-import friends from './modules/friends';
-import iscoin from './modules/iscoin';
+
 import stringPrompt from './modules/string-prompt';
-import dropdown from './modules/dropdown';
+import scatter from './modules/scatter';
+import eos from './modules/eos';
+import iscoin from './modules/iscoin';
 
 Vue.use(Vuex);
 
 const store = new Vuex.Store({
   modules: {
-    scatter,
-    filespace,
-    friends,
-    iscoin,
     stringPrompt,
-    dropdown,
+    scatter,
+    eos,
+    iscoin,
   },
 });
 

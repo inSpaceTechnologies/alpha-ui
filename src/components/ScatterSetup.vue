@@ -9,12 +9,26 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
     <div class="card">
       <div class="card-header">
         <span class="card-title">
-          Scatter setup
+          Using scatter
         </span>
       </div>
       <div class="card-content">
         <template v-if="!this.$store.state.scatter.scatter">
-          <p>Scatter not detected. You can get it from <a target="_blank" href="https://get-scatter.com/">here</a></p> <!-- eslint-disable-line vue/max-attributes-per-line -->
+          <p>
+            Scatter was not detected. You can get it from
+            <a
+              target="_blank"
+              href="https://get-scatter.com/"
+            >
+              here.
+            </a>
+          </p> <!-- eslint-disable-line vue/max-attributes-per-line -->
+          <button
+            class="primary"
+            @click="refresh"
+          >
+            Try again
+          </button>
         </template>
         <template v-else-if="!this.$store.state.scatter.identitySet">
           <p>Scatter detected. You must now set your identity. Please click 'Set identity' when you are ready to do so.</p>
@@ -33,23 +47,16 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
             </button>
           </div>
         </template>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">
-          Scatter help
-        </span>
-      </div>
-      <div class="card-content">
-        <h2>Scatter</h2>
-        <p>"Scatter is a multi-blockchain signature, identity, and reputation provider for Windows, Mac, Linux, Android, and iOS." Get it from <a target="_blank" href="https://get-scatter.com/">here</a>.</p> <!-- eslint-disable-line vue/max-attributes-per-line -->
-        <h2>Adding the network</h2>
-        <p>inSpace currently runs on a private EOS testnet. To add the network details to Scatter, click 'Add network' above after installing Scatter.</p>
-        <h2>Adding your EOS testnet account to your Scatter identity</h2>
-        <p>You will need to add your EOS testnet private key to your Scatter 'vault'. (Open your vault, click 'New', then 'Import', then 'Text or QR'.)</p>
-        <h2>Setting your identity</h2>
-        <p>Once you have completed the above steps, click 'Set identity' above. This will link your Scatter identity to the inSpace website, which will be able to use your EOS account to make transactions (subject to your approval).</p>
+        <template v-else>
+          <p>Your identity has been set using Scatter.</p>
+          <p><strong>Account name</strong>: {{ this.$store.getters['scatter/accountName'] }}</p>
+          <button
+            class="primary"
+            @click="forgetIdentity"
+          >
+            Forget identity
+          </button>
+        </template>
       </div>
     </div>
   </div>
@@ -61,11 +68,11 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 }
 </style>
 <script>
-import logger from '../../logger';
+import logger from '../logger';
 
 export default {
   computed: {
-    done() {
+    identitySet() {
       if (this.$store.state.scatter.identitySet) {
         return true;
       }
@@ -73,21 +80,19 @@ export default {
     },
   },
   watch: {
-    done(newValue) {
+    identitySet(newValue) {
       if (newValue) {
-        // we are done here
-        if (this.$route.query && this.$route.query.redirect) {
-          this.$router.push({ path: this.$route.query.redirect });
-        } else {
-          this.$router.push({ path: '/' });
-        }
+        this.$emit('identity-set');
       }
     },
   },
   methods: {
+    refresh() {
+      window.location.reload(false);
+    },
     async addNetwork() {
       try {
-        const added = await this.$store.dispatch('suggestNetwork');
+        const added = await this.$store.dispatch('scatter/suggestNetwork');
         if (added) {
           logger.notify({
             title: 'Success',
@@ -110,7 +115,7 @@ export default {
       }
     },
     requestIdentity() {
-      this.$store.dispatch('requestIdentity').then(() => {
+      this.$store.dispatch('scatter/requestIdentity').then(() => {
       }, (err) => {
         logger.notify({
           title: err.code,
@@ -118,20 +123,22 @@ export default {
           type: 'error',
           permanent: false,
           sticky: true,
-          buttons: [],
+          buttons: null,
         });
       });
     },
-    /*
     forgetIdentity() {
-      this.$store.dispatch('forgetIdentity').then(() => {
+      this.$store.dispatch('scatter/forgetIdentity').then(() => {
       }, (err) => {
-        logger.error(err.message);
+        logger.notify({
+          title: err.code,
+          text: err.message,
+          type: 'error',
+          permanent: false,
+          sticky: true,
+          buttons: null,
+        });
       });
-    },
-    */
-    confirmIdentity() {
-      this.$store.dispatch('confirmIdentity');
     },
   },
 };

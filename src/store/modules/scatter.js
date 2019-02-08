@@ -4,12 +4,12 @@ This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at https://mozilla.org/MPL/2.0/.
 */
-/* eslint no-shadow: ["error", { "allow": ["state"] }] */
+import { JsonRpc, Api } from 'eosjs';
+import ScatterJS from 'scatterjs-core';
 
-const eosjs = require('eosjs');
-const fetch = require('node-fetch');
+const BLOCKCHAIN = 'eos';
 
-const state = {
+const storeState = {
   network: null,
   scatter: null,
   api: null,
@@ -18,18 +18,18 @@ const state = {
   identitySet: false,
 };
 
-const getters = {
-  accountName: state => state.scatter.identity.accounts.find(acc => acc.blockchain === 'eos').name,
-  publicKey: state => state.scatter.identity.accounts.find(acc => acc.blockchain === 'eos').publicKey,
+const storeGetters = {
+  accountName: state => state.scatter.identity.accounts.find(acc => acc.blockchain === BLOCKCHAIN).name,
+  publicKey: state => state.scatter.identity.accounts.find(acc => acc.blockchain === BLOCKCHAIN).publicKey,
 };
 
-const mutations = {
+const storeMutations = {
   setScatter(state, { network, scatter }) {
     state.scatter = scatter;
     state.network = network;
 
-    const rpc = new eosjs.Rpc.JsonRpc(`${network.protocol}://${network.host}:${network.port}`, { fetch });
-    const api = new eosjs.Api({ rpc, signatureProvider: scatter.eosHook(network) });
+    const rpc = new JsonRpc(network.fullhost());
+    const api = ScatterJS.eos(network, Api, { rpc, beta3: true });
 
     state.rpc = rpc;
     state.api = api;
@@ -43,7 +43,7 @@ const mutations = {
   },
 };
 
-const actions = {
+const storeActions = {
   async requestIdentity({ state, commit }) {
     // You can require certain fields
     await state.scatter.getIdentity({ accounts: [state.network] });
@@ -62,11 +62,43 @@ const actions = {
       });
     });
   },
+  async getTableRows({ state }, {
+    scope, code, table, limit,
+  }) {
+    const res = (await state.rpc.get_table_rows({
+      json: true,
+      scope,
+      code,
+      table,
+      limit,
+    }));
+    return res.rows;
+  },
+  async transact({ state }, {
+    account, name, auth, data,
+  }) {
+    const { api } = state;
+    await api.transact({
+      actions: [{
+        account,
+        name,
+        authorization: [{
+          actor: auth,
+          permission: 'active',
+        }],
+        data,
+      }],
+    }, {
+      blocksBehind: parseInt(process.env.BLOCKS_BEHIND, 10),
+      expireSeconds: parseInt(process.env.EXPIRE_SECONDS, 10),
+    });
+  },
 };
 
 export default {
-  state,
-  getters,
-  actions,
-  mutations,
+  namespaced: true,
+  state: storeState,
+  getters: storeGetters,
+  actions: storeActions,
+  mutations: storeMutations,
 };

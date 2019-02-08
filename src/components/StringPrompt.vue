@@ -16,8 +16,8 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
         <form @submit.prevent="confirm">
           <div class="form-element">
             <input
-              v-focus
               id="val"
+              v-focus
               :value="value"
               type="text"
               name="val"
@@ -58,15 +58,15 @@ export default {
   },
   methods: {
     updateValue(event) {
-      this.$store.commit('setValue', event.target.value);
+      this.$store.commit('stringPrompt/setValue', event.target.value);
     },
     confirm() {
       this.$store.state.stringPrompt.resolve(this.value);
-      this.$store.dispatch('closeStringPrompt');
+      this.$store.dispatch('stringPrompt/closeStringPrompt');
     },
     cancel() {
       this.$store.state.stringPrompt.resolve('');
-      this.$store.dispatch('closeStringPrompt');
+      this.$store.dispatch('stringPrompt/closeStringPrompt');
     },
   },
 };

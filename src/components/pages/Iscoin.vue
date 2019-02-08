@@ -26,7 +26,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
               v-for="(stake, index) in $store.state.iscoin.stakes"
               :key="index + '-stake'"
             >
-              {{ stake.quantity + ' ' + currencySymbol + ' from ' + stake.start + ' for ' + stake.duration + ' seconds.' }}
+              {{ stake.quantity + ' ' + currencySymbol + ' from ' + stake.start + ' with duration index ' + stake.durationIndex }}
             </li>
           </ul>
           <button
@@ -51,26 +51,26 @@ export default {
   },
   methods: {
     async addStake() {
-      const quantity = await this.$store.dispatch('openStringPrompt', {
-        text: 'Enter stake quantity',
-        value: '',
-      });
-      if (!quantity) {
-        return;
+      try {
+        const quantity = await this.$store.dispatch('stringPrompt/openStringPrompt', {
+          text: 'Enter stake quantity',
+          value: '',
+        });
+        if (!quantity) {
+          return;
+        }
+        const durationString = await this.$store.dispatch('stringPrompt/openStringPrompt', {
+          text: 'Enter stake duration index (0-5)',
+          value: '',
+        });
+        const durationIndex = parseInt(durationString, 10);
+        await this.$store.dispatch('iscoin/addStake', { quantity, durationIndex });
+
+        // refresh
+        await this.$store.dispatch('iscoin/getIscoinData');
+      } catch (err) {
+        logger.error(err.message);
       }
-      const durationString = await this.$store.dispatch('openStringPrompt', {
-        text: 'Enter stake duration in seconds',
-        value: '',
-      });
-      const duration = parseInt(durationString, 10);
-      if (!duration) {
-        return;
-      }
-      await this.$store.dispatch('addStake', { quantity, duration }).catch((err) => {
-        logger.error(err);
-      });
-      // refresh
-      await this.$store.dispatch('getIscoinData');
     },
   },
 };

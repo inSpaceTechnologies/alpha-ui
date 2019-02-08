@@ -6,7 +6,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 -->
 <template>
   <div class="modal-dialog">
-    <slot v-if="show"/>
+    <slot v-if="show" />
   </div>
 </template>
 <script>

@@ -17,39 +17,12 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
       >
     </router-link>
     <router-link
-      v-if="this.$store.state.scatter.identitySet"
-      :to="{ name: 'about', params: { accountName: this.$store.getters.accountName }}"
-      exact
-      class="navbar-button"
-    >
-      <font-awesome-icon icon="user" />
-      {{ this.$store.getters.accountName }}
-    </router-link>
-    <router-link
       :to="{name: 'home'}"
       exact
       class="navbar-button"
     >
       <font-awesome-icon icon="home" />
       Home
-    </router-link>
-    <router-link
-      v-if="this.$store.state.scatter.identitySet"
-      :to="{name: 'filespace-2d', params: { accountName: this.$store.getters.accountName }}"
-      exact
-      class="navbar-button"
-    >
-      <font-awesome-icon icon="folder" />
-      Filespace (2D)
-    </router-link>
-    <router-link
-      v-if="this.$store.state.scatter.identitySet"
-      :to="{name: 'filespace-3d', params: { accountName: this.$store.getters.accountName }}"
-      exact
-      class="navbar-button"
-    >
-      <font-awesome-icon icon="folder" />
-      Filespace (3D)
     </router-link>
     <router-link
       v-if="this.$store.state.iscoin.balance !== null"
@@ -60,38 +33,14 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
       <font-awesome-icon icon="coins" />
       {{ this.$store.state.iscoin.balance + ' ' + currencySymbol }}
     </router-link>
-    <div v-if="this.$store.state.scatter.identitySet">
-      <dropdown-button
-        identifier="friend-requests"
-        class="navbar-button"
-      >
-        Friend requests <font-awesome-icon icon="caret-down"/>
-      </dropdown-button>
-      <dropdown-menu
-        class="dropdown-menu"
-        identifier="friend-requests"
-      >
-        <ul>
-          <li v-if="$store.state.friends.receivedRequests.length == 0">
-            No friend requests.
-          </li>
-          <li
-            v-for="(request, index) in $store.state.friends.receivedRequests"
-            v-else
-            :key="index + '-received'"
-          >
-            {{ request }}
-            <!-- Accept a friend request by sending a friend request to the requester -->
-            <button
-              type="button"
-              @click="sendFriendRequest(request)"
-            >
-              Accept
-            </button>
-          </li>
-        </ul>
-      </dropdown-menu>
-    </div>
+    <router-link
+      :to="{name: 'eos-setup'}"
+      exact
+      class="navbar-button"
+    >
+      <EOSLogo />
+      EOS setup
+    </router-link>
   </div>
 </template>
 <style scoped>
@@ -104,42 +53,43 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
   padding: 0 0.5rem;
 }
 .navbar-button {
-    color: rgba(255,255,255,0.5);
-    padding: 0.5rem;
-    text-decoration: none;
-    cursor: pointer;
-    user-select: none;
+  color: rgba(255,255,255,0.5);
+  fill: rgba(255,255,255,0.5);
+  padding: 0.5rem;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
 }
 .navbar-button:hover:not(.router-link-exact-active) {
   color: rgba(255,255,255,0.75);
+  fill: rgba(255,255,255,0.75);
 }
 .navbar > .router-link-exact-active {
-    color: rgba(255,255,255,1.0);
+  color: rgba(255,255,255,1.0);
+  fill: rgba(255,255,255,1.0);
 }
 .logo-link {
-    flex-grow: 1;
+  flex-grow: 1;
 }
 .logo-img {
   height: 2.45rem;
   width: auto;
 }
+svg {
+  height: 1em;
+}
 </style>
 <script>
-import logger from '../logger';
+import EOSLogo from '../images/Chestahedron-Fat-Black.svg';
 
 export default {
+  components: {
+    EOSLogo,
+  },
   data() {
     return {
       currencySymbol: process.env.CURRENCY_SYMBOL, // can't have this in {{ }} because webpack deals with setting it
     };
-  },
-  methods: {
-    sendFriendRequest(recipient) {
-      this.$store.dispatch('addFriendRequest', recipient).then(() => this.$store.dispatch('getFriends')).then(() => {
-      }, (err) => {
-        logger.error(err);
-      });
-    },
   },
 };
 </script>

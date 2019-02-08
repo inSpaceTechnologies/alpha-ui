@@ -24,6 +24,10 @@ p:not(:last-child) {
     margin-bottom: 1rem;
 }
 
+strong {
+  font-weight: bold;
+}
+
 h2 {
     font-size: 125%;
     font-weight: 500;
