@@ -12,6 +12,9 @@ import ScatterEOS from 'scatterjs-plugin-eosjs2';
 
 import WebFont from 'webfontloader';
 
+import 'noty/lib/noty.css';
+import 'noty/lib/themes/relax.css';
+
 import 'reset-css/reset.css';
 
 // font awesome
