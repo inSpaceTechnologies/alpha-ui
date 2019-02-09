@@ -14,7 +14,7 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
       </div>
       <div class="card-content">
         <p>Welcome to inSpace!</p>
-        <p>
+        <p v-if="!this.$store.getters['eos/identitySet']">
           If you have an EOS account, proceed to
           <router-link
             :to="{name: 'eos-setup'}"
