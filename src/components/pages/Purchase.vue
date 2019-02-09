@@ -13,6 +13,9 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
         </span>
       </div>
       <div class="card-content">
+        <p v-if="remaining !== null">
+          {{ remaining }} coins are available to be purchased. (More are added daily.)
+        </p>
         <template v-if="bitcoinTransaction">
           <ul>
             <li>
@@ -73,20 +76,23 @@ export default {
       bitcoinTransaction: null,
       eosTransaction: null,
       currencySymbol: process.env.CURRENCY_SYMBOL, // can't have this in {{ }} because webpack deals with setting it
+      remaining: null,
     };
   },
   async mounted() {
-    const eosAccount = this.$store.getters['scatter/accountName'];
-    const axiosInstance = await inspaceAPI.getAxiosInstance();
-    let response;
     try {
-      response = await axiosInstance.get(`/purchase/iscoin/${eosAccount}`);
+      const eosAccount = this.$store.getters['scatter/accountName'];
+      const axiosInstance = await inspaceAPI.getAxiosInstance();
+
+      const transactionResponse = await axiosInstance.get(`/purchase/iscoin/${eosAccount}`);
+      this.bitcoinTransaction = transactionResponse.data.bitcoinTransaction;
+      this.eosTransaction = transactionResponse.data.eosTransaction;
+
+      const remainingResponse = await axiosInstance.get('/purchase/iscoin/remaining');
+      this.remaining = remainingResponse.data.amount;
     } catch (err) {
       logger.error(err.response.data);
-      return;
     }
-    this.bitcoinTransaction = response.data.bitcoinTransaction;
-    this.eosTransaction = response.data.eosTransaction;
   },
   methods: {
     async getPurchaseAmount() {
@@ -96,10 +102,35 @@ export default {
       });
       return parseFloat(purchaseAmountString);
     },
+    checkPurchaseAmount(purchaseAmount) {
+      if (purchaseAmount <= 0) {
+        logger.notify({
+          title: 'Error',
+          text: 'Amount must be greater than zero.',
+          type: 'error',
+          permanent: false,
+          sticky: false,
+          buttons: [],
+        });
+        return false;
+      }
+      if (purchaseAmount > this.remaining) {
+        logger.notify({
+          title: 'Error',
+          text: 'Not enough iSCoin available to purchase.',
+          type: 'error',
+          permanent: false,
+          sticky: false,
+          buttons: [],
+        });
+        return false;
+      }
+      return true;
+    },
     async bitcoinIscoinPurchase() {
       const eosAccount = this.$store.getters['scatter/accountName'];
       const purchaseAmount = await this.getPurchaseAmount();
-      if (purchaseAmount <= 0) {
+      if (!this.checkPurchaseAmount(purchaseAmount)) {
         return;
       }
       const axiosInstance = await inspaceAPI.getAxiosInstance();
@@ -115,7 +146,7 @@ export default {
     async eosIscoinPurchase() {
       const eosAccount = this.$store.getters['scatter/accountName'];
       const purchaseAmount = await this.getPurchaseAmount();
-      if (purchaseAmount <= 0) {
+      if (!this.checkPurchaseAmount(purchaseAmount)) {
         return;
       }
       const axiosInstance = await inspaceAPI.getAxiosInstance();
