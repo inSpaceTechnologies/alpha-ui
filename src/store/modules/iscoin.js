@@ -4,12 +4,10 @@ This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at https://mozilla.org/MPL/2.0/.
 */
-const ISCOIN_ACCOUNT_NAME = 'iscoinalpha1';
-
 async function getBalance(dispatch, accountName) {
   const accountRows = await dispatch('eos/getTableRows', {
     scope: accountName,
-    code: ISCOIN_ACCOUNT_NAME,
+    code: process.env.ISCOIN_CONTRACT,
     table: 'accounts',
     limit: 500,
   }, { root: true });
@@ -28,7 +26,7 @@ async function getBalance(dispatch, accountName) {
 async function getStakes(dispatch, accountName) {
   const stakeRows = await dispatch('eos/getTableRows', {
     scope: accountName,
-    code: ISCOIN_ACCOUNT_NAME,
+    code: process.env.ISCOIN_CONTRACT,
     table: 'stakes',
     limit: 500,
   }, { root: true });
@@ -75,7 +73,7 @@ const storeActions = {
     const quantityString = `${quantityFloat.toFixed(process.env.CURRENCY_DECIMAL_PLACES)} ${process.env.CURRENCY_SYMBOL}`;
     const accountName = rootGetters['eos/accountName'];
     await dispatch('eos/transact', {
-      account: ISCOIN_ACCOUNT_NAME,
+      account: process.env.ISCOIN_CONTRACT,
       name: 'addstake',
       auth: accountName,
       data: {
